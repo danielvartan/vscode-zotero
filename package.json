@@ -68,11 +68,11 @@
             },
             {
                 "command": "extension.openInZotero",
-                "key": "ctrl+shift+z"
+                "key": "ctrl+alt+shift+z"
             },
             {
                 "command": "extension.openPDFZotero",
-                "key": "ctrl+alt+shift+z"
+                "key": "ctrl+alt+shift+meta+z"
             }
         ],
         "configuration": {
