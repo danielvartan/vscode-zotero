@@ -56,17 +56,44 @@ class ErrorItem implements vscode.QuickPickItem {
   }
 }
 
-// Extract bibliography file path from YAML front matter
+// Extract bibliography file path from YAML front matter or _quarto.yml
 function extractBibliographyFile(documentText: string): string | null {
+  // First, check document's YAML front matter
   const yamlMatch = documentText.match(/^---\s*\n([\s\S]*?)\n---/);
-  if (!yamlMatch) {
-    return null;
+  if (yamlMatch) {
+    const yamlContent = yamlMatch[1];
+    const bibliographyMatch = yamlContent.match(/bibliography:\s*([^\s\n]+)/);
+
+    if (bibliographyMatch) {
+      return bibliographyMatch[1].replace(/["']/g, '');
+    }
   }
-  
-  const yamlContent = yamlMatch[1];
-  const bibliographyMatch = yamlContent.match(/bibliography:\s*([^\s\n]+)/);
-  
-  return bibliographyMatch ? bibliographyMatch[1].replace(/["']/g, '') : null;
+
+  // If not found in front matter, check _quarto.yml files at workspace root
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  if (workspaceFolders && workspaceFolders.length > 0) {
+    const rootPath = workspaceFolders[0].uri.fsPath;
+
+    // Check for both .yml and .yaml extensions
+    for (const filename of ['_quarto.yml', '_quarto.yaml']) {
+      const quartoPath = path.join(rootPath, filename);
+
+      if (fs.existsSync(quartoPath)) {
+        try {
+          const quartoContent = fs.readFileSync(quartoPath, 'utf8');
+          const bibliographyMatch = quartoContent.match(/bibliography:\s*([^\s\n]+)/);
+
+          if (bibliographyMatch) {
+            return bibliographyMatch[1].replace(/["']/g, '');
+          }
+        } catch (err) {
+          console.log(`Failed to read ${filename}:`, err);
+        }
+      }
+    }
+  }
+
+  return null;
 }
 
 // Extract citation key from citation text (e.g., @key or [@key] -> key)
