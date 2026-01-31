@@ -56,39 +56,44 @@ class ErrorItem implements vscode.QuickPickItem {
   }
 }
 
-// Extract bibliography file path from YAML front matter or _quarto.yml
-function extractBibliographyFile(documentText: string): string | null {
+// Extract bibliography file path from YAML front matter or _quarto.yaml
+async function extractBibliographyFile(
+  document: vscode.TextDocument
+): Promise<{ bibFile: string; isFromQuartoYaml: boolean } | null> {
   // First, check document's YAML front matter
+  const documentText = document.getText();
   const yamlMatch = documentText.match(/^---\s*\n([\s\S]*?)\n---/);
+
   if (yamlMatch) {
     const yamlContent = yamlMatch[1];
     const bibliographyMatch = yamlContent.match(/bibliography:\s*([^\s\n]+)/);
 
     if (bibliographyMatch) {
-      return bibliographyMatch[1].replace(/["']/g, '');
+      return {
+        bibFile: bibliographyMatch[1].replace(/["']/g, ''),
+        isFromQuartoYaml: false
+      };
     }
   }
 
-  // If not found in front matter, check _quarto.yml files at workspace root
-  const workspaceFolders = vscode.workspace.workspaceFolders;
-  if (workspaceFolders && workspaceFolders.length > 0) {
-    const rootPath = workspaceFolders[0].uri.fsPath;
+  // If not found, check for _quarto.yml or _quarto.yaml in workspace
+  const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+  if (!workspaceFolder) {
+    return null;
+  }
 
-    // Check for both .yml and .yaml extensions
-    for (const filename of ['_quarto.yml', '_quarto.yaml']) {
-      const quartoPath = path.join(rootPath, filename);
+  for (const quartoFile of ['_quarto.yml', '_quarto.yaml']) {
+    const quartoPath = path.join(workspaceFolder.uri.fsPath, quartoFile);
 
-      if (fs.existsSync(quartoPath)) {
-        try {
-          const quartoContent = fs.readFileSync(quartoPath, 'utf8');
-          const bibliographyMatch = quartoContent.match(/bibliography:\s*([^\s\n]+)/);
+    if (fs.existsSync(quartoPath)) {
+      const quartoContent = fs.readFileSync(quartoPath, 'utf8');
+      const bibliographyMatch = quartoContent.match(/bibliography:\s*([^\s\n]+)/);
 
-          if (bibliographyMatch) {
-            return bibliographyMatch[1].replace(/["']/g, '');
-          }
-        } catch (err) {
-          console.log(`Failed to read ${filename}:`, err);
-        }
+      if (bibliographyMatch) {
+        return {
+          bibFile: bibliographyMatch[1].replace(/["']/g, ''),
+          isFromQuartoYaml: true
+        };
       }
     }
   }
@@ -361,19 +366,29 @@ async function insertCitation(citation: string): Promise<void> {
   });
 
   // Update .bib file
-  const documentText = editor.document.getText();
-  const bibFile = extractBibliographyFile(documentText);
-  
-  if (bibFile) {
+  const bibInfo = await extractBibliographyFile(editor.document);
+
+  if (bibInfo) {
     const citeKey = extractCitationKey(citation);
-    
+
     if (citeKey) {
       const bibEntry = await getBibTeXEntry(citeKey);
-      
+
       if (bibEntry) {
-        const documentDir = path.dirname(editor.document.uri.fsPath);
-        const bibFilePath = path.resolve(documentDir, bibFile);
-        
+        // Determine base path based on where bibliography is defined
+        let basePath: string;
+
+        if (bibInfo.isFromQuartoYaml) {
+          // Bibliography from _quarto.yaml, use workspace root
+          const workspaceFolder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
+          basePath = workspaceFolder ? workspaceFolder.uri.fsPath : path.dirname(editor.document.uri.fsPath);
+        } else {
+          // Bibliography from document's YAML front matter, use document's directory
+          basePath = path.dirname(editor.document.uri.fsPath);
+        }
+
+        const bibFilePath = path.resolve(basePath, bibInfo.bibFile);
+
         await updateBibFile(bibFilePath, bibEntry, citeKey);
       }
     }
