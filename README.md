@@ -6,32 +6,47 @@ Fork of <https://github.com/mblode/vscode-zotero> (no longer maintained).
 
 ## Features
 
-Executing 'Zotero Citation Picker' will call up a citation picker. Use this to find your citation, and insert it into your document and its associated `.bib` file.
+### Citation Picker
 
-- Activate via keyboard shortcut (<kbd>Option + Shift + Z</kbd>)
-- Activate via Command Palette (<kbd>Command + Shift + P</kbd>): Type "Zotero Citation Picker" and press enter.
+Execute *Zotero Citation Picker* to open a citation picker that lets you find your Zotero citations and insert them into your document and its associated `.bib` file. Activate it using <kbd>Option + Shift + Z</kbd> (macOS) or <kbd>Alt + Shift + Z</kbd> (Windows/Linux).
 
-### Two citation picker modes
+Alternatively, open the Command Palette with <kbd>Command + Shift + P</kbd> (macOS) or <kbd>Ctrl + Shift + P</kbd> (Windows/Linux) and search for *Zotero Citation Picker*.
 
-- Native VS Code picker (default): Search and select citations within VS Code using a QuickPick interface
-- Zotero picker: Use Zotero's built-in "Cite as you Write" popup window
+### Citation Picker Modes
 
-You can configure the citation picker behavior in VS Code settings:
+The extension supports two citation picker modes:
 
-- `zotero-citation-picker.citeMethod`: Choose between "vscode" (native VS Code picker) or "zotero" (Zotero's CAYW popup)
-- `zotero-citation-picker.port`: Customize the Zotero Better BibTeX URL (only used for Zotero picker mode)
+- **Native VS Code Picker (Default)**: Search and select citations within VS Code using a QuickPick interface.
+- **Zotero Picker**: Use Zotero's built-in "Cite as you Write" popup window.
 
-### Native VS Code Citation Picker Features
+Configure the citation picker behavior in VS Code settings:
 
-- Simple search: Type any text to search across titles, authors, and other fields
-- Advanced search: Use field-specific searches like:
-  - `author:vuorre` - Search by author name
-  - `title:climate` - Search in title field
-  - `year:2023` - Search by publication year
-  - `journal:nature` - Search by journal/publication
-  - `tag:statistics` - Search by tags
-  - `doi:10.1000` - Search by DOI
-  - Multiple fields: `author:smith title:climate` - Search multiple fields simultaneously
+- `zotero-citation-picker.citeMethod`: Choose between `"vscode"` (native picker) or `"zotero"` (Zotero's CAYW popup)
+- `zotero-citation-picker.port`: Customize the Zotero Better BibTeX URL (only used in Zotero picker mode)
+
+
+#### Native VS Code Citation Picker Features
+
+The native picker offers flexible search options:
+
+- **Simple search**: Just start typing to search across titles, authors, and other fields
+- **Advanced search**: Use field-specific prefixes to narrow your search:
+  - `author:vuorre`: Find works by a specific author
+  - `title:climate`: Search within titles
+  - `year:2023`: Filter by publication year
+  - `journal:nature`: Search by journal or publication name
+  - `tag:statistics`: Find items with specific tags
+  - `doi:10.1000`: Search by DOI
+  - `author:smith title:climate`: Mix and match multiple fields
+
+
+### Open Zotero
+
+Open Zotero using <kbd>Command + Option + Shift + Z</kbd> (macOS) or <kbd>Ctrl + Alt + Shift + Z</kbd> (Windows/Linux).
+
+### PDF Opening
+
+Open PDFs from inserted citations by placing your cursor on the citation and pressing <kbd>Control + Command + Option + Shift + Z</kbd> (macOS) or <kbd>Ctrl + Alt + Shift + Win + Z</kbd> (Windows/Linux).
 
 ## Development
 
